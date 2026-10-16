@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urna Eletrônica - Live Interativa TikTok</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="stream-container">
+    
+    <!-- BARRA SUPERIOR: TIMER -->
+    <header class="top-bar">
+      <div class="timer-pill">
+        <span class="icon">⏱️</span>
+        <span id="round-timer">03:00</span>
+      </div>
+    </header>
+
+    <!-- PLACAR PRINCIPAL DA DISPUTA -->
+    <section class="scoreboard">
+      <!-- CANDIDATO 1 -->
+      <div class="candidate-card c1">
+        <div class="candidate-number" id="c1-number">13</div>
+        <div class="candidate-percent" id="c1-percent">50,0%</div>
+        <div class="candidate-info">
+          <img src="/assets/candidate1.svg" id="c1-avatar" class="candidate-avatar" alt="Candidato 1">
+          <span class="candidate-name" id="c1-name">CANDIDATO A</span>
+        </div>
+        <div class="candidate-votes-tag" id="c1-votes-tag">0 votos</div>
+      </div>
+
+      <!-- CANDIDATO 2 -->
+      <div class="candidate-card c2">
+        <div class="candidate-number" id="c2-number">22</div>
+        <div class="candidate-percent" id="c2-percent">50,0%</div>
+        <div class="candidate-info">
+          <span class="candidate-name" id="c2-name">CANDIDATO B</span>
+          <img src="/assets/candidate2.svg" id="c2-avatar" class="candidate-avatar" alt="Candidato 2">
+        </div>
+        <div class="candidate-votes-tag" id="c2-votes-tag">0 votos</div>
+      </div>
+    </section>
+
+    <!-- BARRA DE DISPUTA / CABO DE GUERRA -->
+    <div class="tug-of-war-container">
+      <div class="tug-of-war-track">
+        <div class="tug-bar-c1" id="tug-bar-c1"></div>
+        <div class="tug-bar-c2" id="tug-bar-c2"></div>
+      </div>
+    </div>
+
+    <!-- INSTRUÇÕES DE VOTO / PRESENTES -->
+    <section class="gifts-promo-row">
+      <div class="gift-tag c1">
+        <img src="/assets/rose.svg" alt="Rosa">
+        <span>+10 VOTOS</span>
+      </div>
+      <div class="gift-tag">
+        <span>💬 DIGITE O NÚMERO</span>
+      </div>
+      <div class="gift-tag c2">
+        <span>+10 VOTOS</span>
+        <img src="/assets/rose.svg" alt="Rosa">
+      </div>
+    </section>
+
+    <!-- ÁREA CENTRAL: A URNA ELETRÔNICA DO BRASIL -->
+    <main class="urna-wrapper">
+      <div class="urna-cabinet">
+        <div class="urna-brand-header">JUSTIÇA ELEITORAL</div>
+
+        <!-- TELA LCD DA URNA -->
+        <div class="urna-screen-section" id="urna-screen">
+          <!-- TELA DE FIM (EXIBIDA APÓS CONFIRMAR) -->
+          <div class="screen-end-state" id="screen-end-state">
+            FIM
+            <small>VOTO GRAVADO</small>
+          </div>
+
+          <div>
+            <div class="screen-header-role">SEU VOTO PARA</div>
+            <div class="screen-role-title">PRESIDENTE</div>
+            
+            <div class="screen-digits-row">
+              <span>Número:</span>
+              <div class="digit-box blink" id="digit-1"></div>
+              <div class="digit-box" id="digit-2"></div>
+            </div>
+          </div>
+
+          <!-- DETALHES DO CANDIDATO -->
+          <div class="screen-candidate-details">
+            <div class="candidate-text-fields">
+              <div>Nome: <b id="screen-cand-name">---</b></div>
+              <div>Partido: <b id="screen-cand-party">---</b></div>
+            </div>
+            <div class="candidate-screen-photo-box" id="screen-photo-box">
+              <img id="screen-photo-img" src="" alt="Foto Candidato">
+            </div>
+          </div>
+
+          <!-- INSTRUÇÕES DO RODAPÉ DA TELA -->
+          <div class="screen-footer-instructions">
+            Aperte a tecla:<br>
+            <b>VERDE</b> para <b>CONFIRMAR</b> este voto<br>
+            <b>LARANJA</b> para <b>REINICIAR</b> este voto
+          </div>
+        </div>
+
+        <!-- TECLADO NUMÉRICO E BOTÕES DA URNA -->
+        <div class="urna-keypad-section">
+          <div class="numeric-keys-grid">
+            <div class="urna-key" id="key-1">1</div>
+            <div class="urna-key" id="key-2">2</div>
+            <div class="urna-key" id="key-3">3</div>
+            <div class="urna-key" id="key-4">4</div>
+            <div class="urna-key" id="key-5">5</div>
+            <div class="urna-key" id="key-6">6</div>
+            <div class="urna-key" id="key-7">7</div>
+            <div class="urna-key" id="key-8">8</div>
+            <div class="urna-key" id="key-9">9</div>
+          </div>
+          <div class="key-zero-container">
+            <div class="urna-key" id="key-0">0</div>
+          </div>
+
+          <!-- BOTÕES ESPECIAIS (BRANCO, CORRIGE, CONFIRMA) -->
+          <div class="command-keys-grid">
+            <button class="cmd-key branco" id="key-branco">BRANCO</button>
+            <button class="cmd-key corrige" id="key-corrige">CORRIGE</button>
+            <button class="cmd-key confirma" id="key-confirma">CONFIRMA</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- A MÃOZINHA ANIMADA (DEDO INDICADOR) -->
+      <div class="finger-hand-pointer" id="hand-pointer">
+        <img src="/assets/hand_finger.svg" alt="Dedo indicador">
+      </div>
+    </main>
+
+    <!-- FEED FLUTUANTE DE VOTOS RECENTES -->
+    <footer class="votes-live-feed" id="votes-feed">
+      <!-- Mensagens inseridas dinamicamente via JS -->
+    </footer>
+
+    <!-- MODAL DE VITÓRIA / FIM DA RODADA -->
+    <div class="winner-modal-overlay" id="winner-modal">
+      <div class="winner-card-content">
+        <div class="trophy-icon">🏆</div>
+        <h2>VENCEDOR DA RODADA!</h2>
+        <h1 id="winner-name" style="color: #fbbf24; margin: 10px 0;">CANDIDATO</h1>
+        <p id="winner-number" style="font-weight: 700; font-size: 18px; margin-bottom: 16px;">NÚMERO --</p>
+        <div id="winner-restart-timer" style="color: #94a3b8; font-size: 13px;">Reiniciando em breve...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/audio.js"></script>
+  <script src="/js/urna.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Controle - Urna Interativa TikTok</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="admin-wrapper">
+    <header class="admin-header">
+      <div class="brand">
+        <h1>🗳️ PAINEL DO STREAMER</h1>
+        <p>Urna Eletrônica Interativa para TikTok Live</p>
+      </div>
+      <div class="status-indicator" id="connection-status-pill">
+        <span class="status-dot disconnected"></span>
+        <span id="connection-text">TikTok Desconectado</span>
+      </div>
+    </header>
+
+    <div class="admin-grid">
+      
+      <!-- SEÇÃO 1: CONEXÃO TIKTOK -->
+      <section class="admin-card">
+        <h2>📡 Conectar à Live do TikTok</h2>
+        <p class="card-desc">Digite o seu @ de usuário do TikTok (a live já deve estar aberta no app ou TikTok Studio).</p>
+        
+        <div class="form-group inline">
+          <input type="text" id="tiktok-user-input" placeholder="ex: @seu_usuario" value="">
+          <button id="btn-connect-tiktok" class="btn btn-primary">Conectar</button>
+          <button id="btn-disconnect-tiktok" class="btn btn-danger" style="display: none;">Desconectar</button>
+        </div>
+        <div id="tiktok-feedback" class="feedback-msg"></div>
+      </section>
+
+      <!-- SEÇÃO 2: CONTROLE DA RODADA -->
+      <section class="admin-card">
+        <h2>⏱️ Controle da Partida</h2>
+        <div class="controls-row">
+          <div class="form-group">
+            <label>Duração da Rodada (Segundos):</label>
+            <input type="number" id="round-duration-input" value="180" min="30" max="600">
+          </div>
+          <button id="btn-save-timer" class="btn btn-secondary">Atualizar Tempo</button>
+        </div>
+        <div class="btn-group-actions">
+          <button id="btn-toggle-timer" class="btn btn-warning">Pausar / Retomar Timer</button>
+          <button id="btn-restart-round" class="btn btn-danger">Zerar Votos e Reiniciar</button>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 3: CONFIGURAÇÃO DOS CANDIDATOS -->
+      <section class="admin-card full-width">
+        <h2>👥 Configurar Candidatos</h2>
+        <div class="candidates-config-grid">
+          
+          <!-- CANDIDATO 1 -->
+          <div class="candidate-box-edit">
+            <h3 style="color: #ef4444;">Candidato 1 (Esquerda)</h3>
+            <div class="form-group">
+              <label>Nome:</label>
+              <input type="text" id="c1-name-input" value="CANDIDATO A">
+            </div>
+            <div class="form-group">
+              <label>Número (2 Dígitos):</label>
+              <input type="text" id="c1-number-input" value="13" maxlength="2">
+            </div>
+            <div class="form-group">
+              <label>Partido / Coligação:</label>
+              <input type="text" id="c1-party-input" value="PARTIDO A">
+            </div>
+            <div class="form-group">
+              <label>Cor do Tema:</label>
+              <input type="color" id="c1-color-input" value="#ef4444">
+            </div>
+            <div class="form-group">
+              <label>URL da Foto:</label>
+              <input type="text" id="c1-photo-input" value="/assets/candidate1.svg">
+            </div>
+          </div>
+
+          <!-- CANDIDATO 2 -->
+          <div class="candidate-box-edit">
+            <h3 style="color: #22c55e;">Candidato 2 (Direita)</h3>
+            <div class="form-group">
+              <label>Nome:</label>
+              <input type="text" id="c2-name-input" value="CANDIDATO B">
+            </div>
+            <div class="form-group">
+              <label>Número (2 Dígitos):</label>
+              <input type="text" id="c2-number-input" value="22" maxlength="2">
+            </div>
+            <div class="form-group">
+              <label>Partido / Coligação:</label>
+              <input type="text" id="c2-party-input" value="PARTIDO B">
+            </div>
+            <div class="form-group">
+              <label>Cor do Tema:</label>
+              <input type="color" id="c2-color-input" value="#22c55e">
+            </div>
+            <div class="form-group">
+              <label>URL da Foto:</label>
+              <input type="text" id="c2-photo-input" value="/assets/candidate2.svg">
+            </div>
+          </div>
+
+        </div>
+        <button id="btn-save-candidates" class="btn btn-success" style="width: 100%; margin-top: 15px;">Salvar Candidatos</button>
+      </section>
+
+      <!-- SEÇÃO 4: SIMULADOR DE TESTES AO VIVO -->
+      <section class="admin-card full-width">
+        <h2>🧪 Simulador de Votos (Teste sem Live)</h2>
+        <p class="card-desc">Clique nos botões abaixo para simular votos no chat ou presentes e verificar o comportamento da urna na tela!</p>
+        
+        <div class="simulator-buttons-grid">
+          <button id="sim-vote-c1" class="btn btn-outline-danger">+1 Voto (Chat: Cand 1)</button>
+          <button id="sim-vote-c2" class="btn btn-outline-success">+1 Voto (Chat: Cand 2)</button>
+          <button id="sim-gift-c1" class="btn btn-gift-c1">🌹 Simular Rosa (+10 Votos Cand 1)</button>
+          <button id="sim-gift-c2" class="btn btn-gift-c2">💖 Simular Coração (+15 Votos Cand 2)</button>
+        </div>
+      </section>
+
+      <!-- SEÇÃO 5: GUIA DO TIKTOK LIVE STUDIO -->
+      <section class="admin-card full-width info-card">
+        <h2>🎬 Como adicionar no TikTok LIVE Studio / OBS Studio</h2>
+        <ol>
+          <li>Abra o <b>TikTok LIVE Studio</b> no seu computador.</li>
+          <li>Clique em <b>Adicionar Fonte</b> e selecione <b>Link / Navegador (Browser Source)</b>.</li>
+          <li>Cole a URL: <code class="url-copy">http://localhost:3000</code></li>
+          <li>Defina a resolução recomendada para <b>1080 x 1920</b> (ou ajuste para preencher a tela vertical).</li>
+          <li>Pronto! Você pode controlar tudo por este painel enquanto transmite.</li>
+        </ol>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>
