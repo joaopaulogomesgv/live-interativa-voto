@@ -3,7 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const path = require('path');
-const { WebcastPushConnection } = require('tiktok-live-connector');
+const { TikTokLiveConnection, ControlEvent, WebcastEvent } = require('tiktok-live-connector');
 
 const app = express();
 const server = http.createServer(app);
@@ -124,7 +124,7 @@ function processVote(targetCandidateNum, votesCount, senderName = 'Eleitor', ava
 }
 
 // Conectar ao TikTok
-function connectToTikTok(username) {
+function connectToTikTok(username, apiKey = '') {
   if (tiktokLiveConnection) {
     try {
       tiktokLiveConnection.disconnect();
@@ -136,11 +136,18 @@ function connectToTikTok(username) {
   const cleanUsername = username.replace('@', '').trim();
   gameState.tiktokUsername = cleanUsername;
 
-  tiktokLiveConnection = new WebcastPushConnection(cleanUsername, {
+  const connOptions = {
     processInitialData: false,
-    enableExtendedGiftInfo: true,
-    requestPollingIntervalMs: 1000
-  });
+    fetchRoomInfoOnConnect: false,
+    enableExtendedGiftInfo: false
+  };
+
+  const finalApiKey = apiKey || process.env.EULER_API_KEY || '';
+  if (finalApiKey) {
+    connOptions.signApiKey = finalApiKey;
+  }
+
+  tiktokLiveConnection = new TikTokLiveConnection(cleanUsername, connOptions);
 
   tiktokLiveConnection.connect()
     .then(state => {
@@ -155,34 +162,35 @@ function connectToTikTok(username) {
     });
 
   // Escutar Comentários do Chat
-  tiktokLiveConnection.on('chat', data => {
-    const comment = data.comment.trim();
+  tiktokLiveConnection.on(WebcastEvent.CHAT, data => {
+    const comment = (data.comment || '').trim();
     const c1Num = String(gameState.candidate1.number);
     const c2Num = String(gameState.candidate2.number);
+    const senderName = data.user?.nickname || data.user?.uniqueId || data.nickname || 'Eleitor';
+    const avatar = data.user?.profilePicture?.urls?.[0] || data.profilePictureUrl || '';
 
     // Se o comentário bater exatamente com o número ou contiver com destaque
     if (comment === c1Num || comment.startsWith(c1Num + ' ') || comment.endsWith(' ' + c1Num)) {
-      processVote(c1Num, gameState.chatVoteWeight, data.nickname, data.profilePictureUrl);
+      processVote(c1Num, gameState.chatVoteWeight, senderName, avatar);
     } else if (comment === c2Num || comment.startsWith(c2Num + ' ') || comment.endsWith(' ' + c2Num)) {
-      processVote(c2Num, gameState.chatVoteWeight, data.nickname, data.profilePictureUrl);
+      processVote(c2Num, gameState.chatVoteWeight, senderName, avatar);
     }
   });
 
   // Escutar Presentes (Gifts)
-  tiktokLiveConnection.on('gift', data => {
-    // data.giftType: 1 = presente que acumula combo, etc.
-    if (data.giftType === 1 && !data.repeatEnd) {
-      // Combo em andamento - podemos esperar finalizar ou somar a cada repetição
+  tiktokLiveConnection.on(WebcastEvent.GIFT, data => {
+    const giftType = data.giftDetails?.giftType ?? data.giftType;
+    if (giftType === 1 && !data.repeatEnd) {
+      // Combo em andamento - espera finalizar para computar total
+      return;
     }
-    
-    // Mapeamento de presentes:
-    // Uma rosa (giftId 5655) ou pelo nome
-    const giftName = data.giftName.toLowerCase();
+
+    const rawGiftName = data.giftDetails?.giftName || data.giftName || 'Presente';
+    const giftName = rawGiftName.toLowerCase();
     const count = data.repeatCount || 1;
-    
-    // Regra clássica de live: 
-    // Rosa = Voto no Candidato 1, Haltere/Outro = Voto no Candidato 2 (ou configurável)
-    // Vamos verificar se o presente foi configurado para C1 ou C2, ou se o usuário escolheu no painel
+    const senderName = data.user?.nickname || data.user?.uniqueId || data.nickname || 'Apoiador';
+    const avatar = data.user?.profilePicture?.urls?.[0] || data.profilePictureUrl || '';
+
     let voteFor = null;
     let votesAwarded = 10 * count;
 
@@ -190,33 +198,31 @@ function connectToTikTok(username) {
       voteFor = gameState.candidate1.number;
       votesAwarded = (gameState.giftsConfig.rose?.votes || 10) * count;
     } else {
-      // Outros presentes dão voto pro Candidato 2 ou proporcional
       voteFor = gameState.candidate2.number;
       votesAwarded = (gameState.giftsConfig.fingerHeart?.votes || 15) * count;
     }
 
     if (voteFor) {
-      processVote(voteFor, votesAwarded, data.nickname, data.profilePictureUrl, true, data.giftName);
+      processVote(voteFor, votesAwarded, senderName, avatar, true, rawGiftName);
     }
   });
 
   // Escutar Curtidas (Likes)
   let accumulatedLikes = 0;
-  tiktokLiveConnection.on('like', data => {
+  tiktokLiveConnection.on(WebcastEvent.LIKE, data => {
     accumulatedLikes += data.likeCount || 1;
-    // A cada 15 likes, distribui 1 voto ou atualiza
     if (accumulatedLikes >= 15) {
       accumulatedLikes = 0;
       io.emit('likes_trigger', { count: data.likeCount, total: data.totalLikeCount });
     }
   });
 
-  tiktokLiveConnection.on('disconnected', () => {
+  tiktokLiveConnection.on(ControlEvent.DISCONNECTED, () => {
     gameState.connected = false;
     io.emit('tiktok_status', { connected: false, username: cleanUsername, message: 'Live desconectada.' });
   });
 
-  tiktokLiveConnection.on('error', err => {
+  tiktokLiveConnection.on(ControlEvent.ERROR, err => {
     console.error('[TikTok Event Error]', err);
   });
 }
@@ -227,8 +233,8 @@ io.on('connection', socket => {
   socket.emit('game_state', gameState);
 
   // Painel de Admin solicita conexão TikTok
-  socket.on('connect_tiktok', ({ username }) => {
-    if (username) connectToTikTok(username);
+  socket.on('connect_tiktok', ({ username, apiKey }) => {
+    if (username) connectToTikTok(username, apiKey);
   });
 
   socket.on('disconnect_tiktok', () => {

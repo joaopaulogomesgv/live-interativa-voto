@@ -79,6 +79,13 @@ function updateConnectionStatus(isConnected, username) {
   }
 }
 
+// Chave Euler Opcional
+const eulerApiKeyInput = document.getElementById('euler-api-key-input');
+if (eulerApiKeyInput) {
+  const savedKey = localStorage.getItem('euler_api_key');
+  if (savedKey) eulerApiKeyInput.value = savedKey;
+}
+
 // Ações do Usuário
 btnConnectTikTok.addEventListener('click', () => {
   const user = tiktokUserInput.value.trim();
@@ -86,9 +93,16 @@ btnConnectTikTok.addEventListener('click', () => {
     alert('Digite o seu nome de usuário do TikTok (@)!');
     return;
   }
+  const apiKey = eulerApiKeyInput ? eulerApiKeyInput.value.trim() : '';
+  if (apiKey) {
+    localStorage.setItem('euler_api_key', apiKey);
+  } else {
+    localStorage.removeItem('euler_api_key');
+  }
+
   tiktokFeedback.textContent = 'Conectando à live...';
   tiktokFeedback.style.color = '#fbbf24';
-  socket.emit('connect_tiktok', { username: user });
+  socket.emit('connect_tiktok', { username: user, apiKey });
 });
 
 btnDisconnectTikTok.addEventListener('click', () => {
